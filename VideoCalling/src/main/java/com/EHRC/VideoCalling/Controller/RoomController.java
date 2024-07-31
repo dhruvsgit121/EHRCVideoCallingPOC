@@ -3,12 +3,17 @@ package com.EHRC.VideoCalling.Controller;
 import com.EHRC.VideoCalling.CustomExceptions.CustomValidationException;
 import com.EHRC.VideoCalling.Models.CreateRoomRequestModel;
 import com.EHRC.VideoCalling.Models.User;
+import com.EHRC.VideoCalling.Service.JWTTokenService;
 import com.EHRC.VideoCalling.Service.UserService;
 import com.EHRC.VideoCalling.Utilities.UserUtilities;
+import com.fasterxml.jackson.core.PrettyPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -22,14 +27,18 @@ public class RoomController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JWTTokenService jwtTokenService;
+
 
     @PostMapping("/createroom")
-    public ResponseEntity<String> createRoom(@RequestBody CreateRoomRequestModel requestModel) {
+    public ResponseEntity<?> createRoom(@RequestBody CreateRoomRequestModel requestModel) {
 
         System.out.println("createRoom called doctor ID: " + requestModel.doctorID + " Patient ID : " + requestModel.patientID);
 
         Optional<User> doctorUserDetails = userService.getDoctorDetails(requestModel.doctorID);
         Optional<User> patientUserDetails = userService.getPatientDetails(requestModel.patientID);
+
 
         User doctorDetails, patientDetails;
 
@@ -47,14 +56,17 @@ public class RoomController {
             throw new CustomValidationException("No Patient exists with this ID.");
         }
 
+        String emailPrefix = "@gmail.com";
 
+        String doctorEmail =  doctorDetails.getName() + emailPrefix;
+        String patientEmail =  patientDetails.getName() + emailPrefix;
 
+        Map<String, Object> userTokenData = jwtTokenService.generateUserJWTTokenData(doctorDetails.getName(), doctorEmail, patientDetails.getName(), patientEmail);
+        Map<String, Object> response = new HashMap<>();
+        response.putAll(userTokenData);
+        response.put("timestamp", LocalDateTime.now());
 
+        return ResponseEntity.ok(response);
 
-//        System.out.println("user doctor data is : " + doctorDetails.getName() + doctorDetails.getId() + doctorDetails.getRole() + doctorDetails.getContactNumber());
-//
-//        System.out.println("user doctor data is : " + patientDetails.getName() + patientDetails.getId() + patientDetails.getRole() + patientDetails.getContactNumber());
-//
-        return ResponseEntity.ok(userUtilities.getWelcomeMessage());
     }
 }
