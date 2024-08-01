@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,7 +80,7 @@ public class JWTTokenService {
         String patientVideoConferencingURL = jitsiFullDomain + randomRoomID + "?jwt=" + patientJWTToken + jitsiConfigSettings;
         userTokenData.put("patientVideoConferencingURL", patientVideoConferencingURL);
 
-        smsService.sendTestSms(patientPhoneNumber, patientVideoConferencingURL);
+        //smsService.sendTestSms(patientPhoneNumber, patientVideoConferencingURL);
 
         return userTokenData;
     }

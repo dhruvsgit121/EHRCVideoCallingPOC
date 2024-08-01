@@ -31,6 +31,12 @@ public class RoomController {
     private JWTTokenService jwtTokenService;
 
 
+    @GetMapping("/helloworld")
+    public String getHelloWorld(){
+        return "Hello World!!!";
+    }
+
+
     @PostMapping("/createroom")
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomRequestModel requestModel) {
 
