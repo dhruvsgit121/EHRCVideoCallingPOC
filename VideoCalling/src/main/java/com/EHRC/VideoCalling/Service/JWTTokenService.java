@@ -4,6 +4,7 @@ package com.EHRC.VideoCalling.Service;
 import com.EHRC.VideoCalling.Utilities.JitsiJWTUtilities;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,13 @@ public class JWTTokenService {
     @Value("${jwt.configSettings}")
     private String jitsiConfigSettings;
 
-    public Map<String, Object> generateUserJWTTokenData(String doctorName, String doctorEmail, String patientName, String patientEmail) {
+    @Autowired
+    private SmsService smsService;
+
+    @Autowired
+    private RebrandlyUrlShortenerService tinyUrlService;
+
+    public Map<String, Object> generateUserJWTTokenData(String doctorName, String doctorEmail, String doctorPhoneNumber, String patientName, String patientEmail, String patientPhoneNumber) {
 
         String randomDoctorUserID = JitsiJWTUtilities.generateRandomString(10);
         String randomPatientUserID = JitsiJWTUtilities.generateRandomString(10);
@@ -43,10 +50,17 @@ public class JWTTokenService {
         String audienceID = appID + ":" + randomRoomID;
 
         System.out.println("generateUserJWTTokenData called");
+
+        System.out.println("*********************Doctor Details************");
         System.out.println(doctorName);
         System.out.println(doctorEmail);
+        System.out.println(doctorPhoneNumber);
+
+        System.out.println("*********************Patient Details************");
         System.out.println(patientName);
         System.out.println(patientEmail);
+        System.out.println(patientPhoneNumber);
+
 
         Map<String, Object> userTokenData = new HashMap<>();
 
@@ -56,11 +70,18 @@ public class JWTTokenService {
         String doctorVideoConferencingURL = jitsiFullDomain + randomRoomID + "?jwt=" + doctorJWTToken + jitsiConfigSettings;
         userTokenData.put("doctorVideoConferencingURL", doctorVideoConferencingURL);
 
+
+//        String shortUrl = tinyUrlService.shortenUrl(doctorVideoConferencingURL);
+//        System.out.println("Shortent URL is : " + shortUrl);
+
+
         String patientJWTToken = generatePatientJWTToken(patientName, patientEmail, randomPatientUserID, randomRoomID, audienceID);
         userTokenData.put("patientJWTToken", patientJWTToken);
 
         String patientVideoConferencingURL = jitsiFullDomain + randomRoomID + "?jwt=" + patientJWTToken + jitsiConfigSettings;
         userTokenData.put("patientVideoConferencingURL", patientVideoConferencingURL);
+
+        smsService.sendTestSms(patientPhoneNumber, patientVideoConferencingURL);
 
         return userTokenData;
     }
@@ -103,8 +124,8 @@ public class JWTTokenService {
         claims.put("nbf", JitsiJWTUtilities.getCurrentTimeStamp()); // Not Before time in seconds
         claims.put("exp", JitsiJWTUtilities.getExpirationTimeStamp(expirationOffset)); // Expiry time in milliseconds (1 hour)
 //        "moderator": true
-        claims.put("moderator", isModerator);
-        claims.put("role", isModerator ? "moderator" : "participant");
+        //claims.put("moderator", isModerator);
+        //claims.put("role", isModerator ? "moderator" : "participant");
         return claims;
     }
 
@@ -116,17 +137,17 @@ public class JWTTokenService {
         user.put("name", username);
         user.put("id", userID);
         user.put("email", userEmail);
-        user.put("affiliation", isModerator ? "owner" : "member");
+//        user.put("affiliation", isModerator ? "owner" : "member");
 //        "affiliation": "owner"
         context.put("user", user);
 //        context.put("group", isModerator ? "moderator" : "viewer");
 //        roles: ['moderator']  // Assign the moderator role
 
-        ArrayList<String> roles = new ArrayList<>();
-        roles.add(isModerator ? "moderator" : "participant");
-
-        context.put("affiliation", isModerator ? "owner" : "member");
-        context.put("role", roles);
+//        ArrayList<String> roles = new ArrayList<>();
+//        roles.add(isModerator ? "moderator" : "participant");
+//
+//        context.put("affiliation", isModerator ? "owner" : "member");
+//        context.put("role", roles);
         return context;
     }
 

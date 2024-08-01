@@ -58,10 +58,12 @@ public class RoomController {
 
         String emailPrefix = "@gmail.com";
 
+        String phonePrefix = "+91";
+
         String doctorEmail =  doctorDetails.getName() + emailPrefix;
         String patientEmail =  patientDetails.getName() + emailPrefix;
 
-        Map<String, Object> userTokenData = jwtTokenService.generateUserJWTTokenData(doctorDetails.getName(), doctorEmail, patientDetails.getName(), patientEmail);
+        Map<String, Object> userTokenData = jwtTokenService.generateUserJWTTokenData(doctorDetails.getName(), doctorEmail, phonePrefix + doctorDetails.getContactNumber(), patientDetails.getName(), patientEmail, phonePrefix + patientDetails.getContactNumber());
         Map<String, Object> response = new HashMap<>();
         response.putAll(userTokenData);
         response.put("timestamp", LocalDateTime.now());
